@@ -29,8 +29,11 @@ production-rag/
 ├── evaluation/
 │   ├── evaluator.py    — RAGAS metrics runner (faithfulness, answer relevancy)
 │   └── golden_dataset.json — 5 QA pairs for benchmarking
+├── observability/
+│   ├── langfuse_client.py — Langfuse client init (reads keys from env)
+│   └── metrics.py         — Helper functions: trace, span, score wrappers
 ├── api/
-│   └── main.py         — FastAPI (POST /ingest, POST /query)
+│   └── main.py         — FastAPI (POST /ingest, POST /query) + Langfuse traces/spans
 ├── .github/workflows/
 │   └── eval.yml        — CI gate: RAGAS thresholds on every PR to main
 ├── config.yaml         — All tunable parameters
@@ -46,6 +49,7 @@ production-rag/
 - **Reranking**: cross-encoder/ms-marco-MiniLM-L-12-v2 (sentence-transformers)
 - **LLM**: Claude Sonnet 4 via OpenRouter (temperature 0.0)
 - **API**: FastAPI + uvicorn
+- **Observability**: Langfuse (cloud) — traces, spans, LLM token/cost tracking
 - **Python**: 3.13
 
 ## Configuration
@@ -151,6 +155,37 @@ Question → embed with BGE-M3 → vector search (top 20) + BM25 (top 20)
 - `POST /query` — question → embed → vector(20) + BM25(20) → RRF(20) → rerank(5) → generate → guard → `{question, answer, citation_check}`
 - Returns 400 if no documents ingested and /query is called
 - All pipeline components are singletons (loaded once)
+
+## Observability Contract
+
+### langfuse_client.py ✅
+- Singleton `Langfuse` client initialized from env vars (`LANGFUSE_SECRET_KEY`, `LANGFUSE_PUBLIC_KEY`, `LANGFUSE_BASE_URL`)
+- `get_client() -> Langfuse` — returns the shared client instance
+- Client created once at import, reused across the app
+- If env vars missing, client is `None` — observability degrades gracefully (no crashes)
+
+### metrics.py ✅
+- Helper functions wrapping Langfuse trace/span/score APIs
+- `create_trace(name, user_id, metadata) -> trace` — starts a new trace for a request
+- `create_span(trace, name, input, metadata) -> span` — creates a span within a trace
+- `end_span(span, output, metadata)` — ends a span with output data
+- `score_trace(trace, name, value, comment)` — attaches a numeric score to a trace
+- `create_generation(trace, name, model, input, output, usage)` — logs an LLM generation with token counts and cost
+- All functions are no-ops if Langfuse client is `None` (graceful degradation)
+
+### Instrumentation in api/main.py
+- `POST /ingest`: one trace per request, spans for: `pdf_load`, `chunk`, `embed`, `vector_add`, `bm25_index`
+- `POST /query`: one trace per request, spans for: `embed_query`, `vector_search`, `bm25_search`, `rrf_fuse`, `rerank`, `generate`, `citation_guard`
+- Citation coverage score attached to query traces
+- Trace metadata includes: filename (ingest), question (query), chunks_stored, answer length
+
+### Instrumentation in generation/chain.py
+- LLM call wrapped with `create_generation()` to track:
+  - Model name (`anthropic/claude-sonnet-4`)
+  - Input (system + user messages)
+  - Output (generated answer)
+  - Token usage: `prompt_tokens`, `completion_tokens`, `total_tokens`
+  - Cost (from OpenRouter response headers if available)
 
 ## Conventions
 - One Document = one page for PDFs, one Document = one file for text/markdown

@@ -8,6 +8,7 @@ from openai import OpenAI
 
 from ingestion.loader import Document
 from config import LLM_MODEL, LLM_TEMPERATURE
+from observability.metrics import create_generation
 
 _DEFAULT_PROMPT = Path(__file__).parent / "prompts" / "qa_prompt.yaml"
 
@@ -35,16 +36,45 @@ class RAGChain:
             )
         return "\n---\n".join(chunks)
 
-    def generate(self, query: str, documents: list[Document]) -> str:
+    def generate(
+        self,
+        query: str,
+        documents: list[Document],
+        trace=None,
+    ) -> str:
         context = self._build_context(documents)
         user_msg = self._user_template.format(context=context, question=query)
 
+        messages = [
+            {"role": "system", "content": self._system_prompt},
+            {"role": "user", "content": user_msg},
+        ]
+
         response = self._client.chat.completions.create(
             model=LLM_MODEL,
-            messages=[
-                {"role": "system", "content": self._system_prompt},
-                {"role": "user", "content": user_msg},
-            ],
+            messages=messages,
             temperature=LLM_TEMPERATURE,
         )
-        return response.choices[0].message.content
+
+        answer = response.choices[0].message.content
+
+        # ── Langfuse generation tracking ──────────────────────────
+        usage_data = {}
+        if response.usage:
+            usage_data = {
+                "input": response.usage.prompt_tokens,
+                "output": response.usage.completion_tokens,
+                "total": response.usage.total_tokens,
+            }
+
+        create_generation(
+            trace=trace,
+            name="llm_generate",
+            model=LLM_MODEL,
+            input=messages,
+            output=answer,
+            usage=usage_data,
+            metadata={"temperature": LLM_TEMPERATURE},
+        )
+
+        return answer
