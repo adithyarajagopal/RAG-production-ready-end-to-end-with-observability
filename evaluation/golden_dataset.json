@@ -1,0 +1,39 @@
+[
+  {
+    "question": "What is the authorized share capital of the company?",
+    "ground_truth": "The authorized share capital of the company is Rs. 50,00,00,000 (Rupees Fifty Crores) divided into 5,00,00,000 equity shares of Rs. 10 each.",
+    "contexts": [
+      "The authorized share capital of our Company is Rs. 50,00,00,000 (Rupees Fifty Crores only) divided into 5,00,00,000 (Five Crore) Equity Shares of face value of Rs. 10/- (Rupees Ten only) each. The authorized share capital was increased from Rs. 10,00,00,000 to Rs. 50,00,00,000 pursuant to a resolution passed by the shareholders at the Extraordinary General Meeting held on March 15, 2022."
+    ]
+  },
+  {
+    "question": "What is the issued, subscribed, and paid-up equity share capital of the company?",
+    "ground_truth": "The issued, subscribed, and paid-up equity share capital is Rs. 32,50,00,000 consisting of 3,25,00,000 equity shares of Rs. 10 each, fully paid-up.",
+    "contexts": [
+      "The issued, subscribed, and paid-up equity share capital of our Company is Rs. 32,50,00,000 (Rupees Thirty Two Crores and Fifty Lakhs only) consisting of 3,25,00,000 (Three Crores Twenty Five Lakhs) Equity Shares of face value of Rs. 10/- (Rupees Ten only) each, fully paid-up. All equity shares rank pari passu in all respects including with respect to dividends and voting rights."
+    ]
+  },
+  {
+    "question": "What is the aggregate shareholding of the promoters and promoter group?",
+    "ground_truth": "The promoters and promoter group collectively hold 2,43,75,000 equity shares representing 75.00% of the pre-Offer paid-up equity share capital.",
+    "contexts": [
+      "As on the date of this Draft Red Herring Prospectus, the Promoters and Promoter Group collectively hold 2,43,75,000 (Two Crores Forty Three Lakhs Seventy Five Thousand) Equity Shares representing 75.00% of the pre-Offer issued, subscribed and paid-up Equity Share capital of our Company.",
+      "The Promoters of our Company are Mr. Rajesh Kumar Sharma and Mrs. Priya Sharma. Mr. Rajesh Kumar Sharma holds 1,62,50,000 Equity Shares constituting 50.00% and Mrs. Priya Sharma holds 81,25,000 Equity Shares constituting 25.00% of the pre-Offer paid-up Equity Share capital."
+    ]
+  },
+  {
+    "question": "Describe the history of equity share allotments made by the company.",
+    "ground_truth": "The company made the following allotments: 10,00,000 shares on incorporation on June 10, 2018 at par value; 40,00,000 shares on March 20, 2020 via rights issue at Rs. 25 per share; and 2,75,00,000 bonus shares on September 5, 2022 in the ratio of 5:1.",
+    "contexts": [
+      "The following is the history of equity share capital of our Company: (i) On June 10, 2018, 10,00,000 Equity Shares were allotted to the subscribers to the Memorandum of Association at face value of Rs. 10 per share aggregating to Rs. 1,00,00,000. (ii) On March 20, 2020, 40,00,000 Equity Shares were allotted on a rights basis at an issue price of Rs. 25 per share (including a premium of Rs. 15 per share) aggregating to Rs. 10,00,00,000. (iii) On September 5, 2022, 2,75,00,000 Bonus Equity Shares of face value Rs. 10 each were allotted in the ratio of 5:1 i.e. five Equity Shares for every one Equity Share held, by capitalizing a sum of Rs. 27,50,00,000 from the Securities Premium Account and General Reserve."
+    ]
+  },
+  {
+    "question": "Has the company complied with SEBI ICDR Regulations regarding minimum promoter contribution?",
+    "ground_truth": "Yes, the promoters have confirmed that their contribution of 20% of the post-Offer paid-up capital has been brought in at least one year prior to the date of filing the DRHP and the shares are free from encumbrances.",
+    "contexts": [
+      "In compliance with Regulation 14 of the SEBI ICDR Regulations, the Promoters of our Company have confirmed that the minimum promoter contribution of not less than 20% of the post-Offer paid-up Equity Share capital of our Company has been brought in at least one year prior to the date of filing of this Draft Red Herring Prospectus with SEBI. The Equity Shares being offered as part of the minimum promoters contribution are free from any encumbrances and pledge.",
+      "The minimum promoters contribution has been locked-in for a period of three years from the date of Allotment in the Offer. The Equity Shares held by the Promoters in excess of the minimum promoters contribution shall be locked-in for a period of one year from the date of Allotment in the Offer."
+    ]
+  }
+]

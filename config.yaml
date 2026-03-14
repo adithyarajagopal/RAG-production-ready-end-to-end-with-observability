@@ -1,0 +1,29 @@
+# ── Ingestion ────────────────────────────────────────────────────
+ingestion:
+  chunk_tokens: 600
+  overlap_tokens: 100
+  min_page_chars: 50
+  embedding_model: "BAAI/bge-m3"
+  embedding_batch_size: 32
+
+# ── Retrieval ────────────────────────────────────────────────────
+retrieval:
+  vector_top_k: 20
+  bm25_top_k: 20
+  rrf_k: 60
+  rrf_top_n: 20
+  rerank_top_k: 5
+  reranker_model: "cross-encoder/ms-marco-MiniLM-L-12-v2"
+  vector_collection: "drhp_documents"
+
+# ── Generation ───────────────────────────────────────────────────
+generation:
+  llm_model: "anthropic/claude-sonnet-4"
+  temperature: 0.0
+  citation_threshold: 0.80
+  citation_min_ngram: 5
+
+# ── Evaluation ───────────────────────────────────────────────────
+evaluation:
+  faithfulness_min: 0.85
+  relevancy_min: 0.80
