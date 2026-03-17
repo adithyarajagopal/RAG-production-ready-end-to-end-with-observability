@@ -104,6 +104,7 @@ async def ingest(file: UploadFile):
 
     if trace:
         trace.update(output={"chunks_stored": len(chunks)})
+        trace.end()
 
     return IngestResponse(filename=file.filename, chunks_stored=len(chunks))
 
@@ -178,6 +179,7 @@ async def query(body: QueryRequest):
             "coverage": guarded["coverage"],
             "passed": guarded["passed"],
         })
+        trace.end()
 
     return QueryResponse(
         question=question,

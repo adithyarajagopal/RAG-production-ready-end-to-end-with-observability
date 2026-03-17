@@ -1,11 +1,16 @@
-"""Helper functions wrapping Langfuse trace/span/generation/score APIs.
+"""Helper functions wrapping Langfuse v4 trace/span/generation/score APIs.
 
 Every function is a no-op if the Langfuse client is None (graceful degradation).
+
+Langfuse v4 API:
+- client.start_observation(name, as_type="span"|"generation") → root observation
+- parent.start_observation(name, as_type="span"|"generation") → nested child
+- span.update(output=...) then span.end() → close a span
+- span.score_trace(name, value, comment) → score the whole trace
 """
 
 from __future__ import annotations
 
-from datetime import datetime, timezone
 from typing import Any
 
 from observability.langfuse_client import get_client
@@ -17,16 +22,16 @@ def create_trace(
     metadata: dict[str, Any] | None = None,
     input: Any | None = None,
 ):
-    """Start a new Langfuse trace for a request."""
+    """Start a new Langfuse trace (root observation) for a request."""
     client = get_client()
     if client is None:
         return None
 
-    return client.trace(
+    return client.start_observation(
         name=name,
-        user_id=user_id,
-        metadata=metadata or {},
+        as_type="span",
         input=input,
+        metadata=metadata or {},
     )
 
 
@@ -36,15 +41,15 @@ def create_span(
     input: Any | None = None,
     metadata: dict[str, Any] | None = None,
 ):
-    """Create a span within an existing trace."""
+    """Create a child span within an existing trace/span."""
     if trace is None:
         return None
 
-    return trace.span(
+    return trace.start_observation(
         name=name,
+        as_type="span",
         input=input,
         metadata=metadata or {},
-        start_time=datetime.now(timezone.utc),
     )
 
 
@@ -57,11 +62,8 @@ def end_span(
     if span is None:
         return
 
-    span.end(
-        output=output,
-        metadata=metadata or {},
-        end_time=datetime.now(timezone.utc),
-    )
+    span.update(output=output, metadata=metadata or {})
+    span.end()
 
 
 def score_trace(
@@ -70,11 +72,11 @@ def score_trace(
     value: float,
     comment: str | None = None,
 ):
-    """Attach a numeric score to a trace."""
+    """Attach a numeric score to the trace."""
     if trace is None:
         return
 
-    trace.score(
+    trace.score_trace(
         name=name,
         value=value,
         comment=comment,
@@ -90,25 +92,28 @@ def create_generation(
     usage: dict[str, Any] | None = None,
     metadata: dict[str, Any] | None = None,
 ):
-    """Log an LLM generation with token counts and cost.
+    """Log an LLM generation with token counts.
 
     Args:
-        trace: Parent trace (or None to skip).
+        trace: Parent trace/span (or None to skip).
         name: Generation name (e.g. "rag_generate").
         model: Model identifier (e.g. "anthropic/claude-sonnet-4").
         input: Messages sent to the LLM.
         output: LLM response text.
-        usage: Dict with keys: prompt_tokens, completion_tokens, total_tokens.
+        usage: Dict with keys: input, output, total (token counts).
         metadata: Additional metadata.
     """
     if trace is None:
         return None
 
-    return trace.generation(
+    gen = trace.start_observation(
         name=name,
+        as_type="generation",
         model=model,
         input=input,
         output=output,
-        usage=usage or {},
+        usage_details=usage or {},
         metadata=metadata or {},
     )
+    gen.end()
+    return gen

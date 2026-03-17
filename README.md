@@ -92,6 +92,9 @@ production-rag/
 ├── evaluation/
 │   ├── evaluator.py          ← RAGAS metrics (faithfulness, relevancy)
 │   └── golden_dataset.json   ← 5 QA pairs for benchmarking
+├── observability/
+│   ├── langfuse_client.py    ← Singleton Langfuse client (lazy init)
+│   └── metrics.py            ← Trace, span, score, generation helpers
 ├── .github/workflows/
 │   └── eval.yml              ← CI gate on PR to main
 ├── config.yaml               ← All tunable parameters (zero hardcoding)
@@ -144,9 +147,42 @@ CI gates every PR to `main` on:
 - **Faithfulness ≥ 0.85** — answers must be grounded in retrieved context
 - **Answer Relevancy ≥ 0.80** — answers must address the question asked
 
+## Observability
+
+Built-in [Langfuse](https://langfuse.com) integration for full pipeline tracing.
+
+**What gets traced:**
+
+| Endpoint | Traces & Spans |
+|----------|---------------|
+| `/ingest` | `pdf_load` → `chunk` → `embed` → `vector_add` → `bm25_index` |
+| `/query` | `embed_query` → `vector_search` → `bm25_search` → `rrf_fuse` → `rerank` → `generate` → `citation_guard` |
+
+**LLM generation tracking:** Every Claude call logs model name, input/output messages, and token usage (prompt, completion, total).
+
+**Citation scoring:** Each query trace gets a numeric `citation_coverage` score (0.0–1.0).
+
+**Graceful degradation:** If Langfuse keys are missing from `.env`, all observability functions become no-ops — the pipeline runs identically without tracing.
+
+```bash
+# Add to .env for observability
+LANGFUSE_SECRET_KEY=sk-lf-...
+LANGFUSE_PUBLIC_KEY=pk-lf-...
+LANGFUSE_BASE_URL=https://cloud.langfuse.com
+```
+
+```
+production-rag/
+├── observability/
+│   ├── __init__.py            ← Exports all helper functions
+│   ├── langfuse_client.py     ← Singleton client, lazy init
+│   └── metrics.py             ← create_trace, create_span, end_span, score_trace, create_generation
+```
+
 ## Requirements
 
 - Python 3.13
 - `OPENROUTER_API_KEY` in `.env`
+- `LANGFUSE_SECRET_KEY` + `LANGFUSE_PUBLIC_KEY` in `.env` (optional — for observability)
 - ~2GB disk for BGE-M3 model (downloaded on first run)
 - No GPU required (CPU inference)
